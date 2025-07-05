@@ -19,6 +19,14 @@ CONVERTED_FOLDER = 'converted'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(CONVERTED_FOLDER, exist_ok=True)
 
+# Set up pdfkit configuration for Render (if WKHTMLTOPDF_PATH env var is set)
+WKHTMLTOPDF_PATH = os.environ.get("WKHTMLTOPDF_PATH")
+if WKHTMLTOPDF_PATH:
+    import pdfkit
+    PDFKIT_CONFIG = pdfkit.configuration(wkhtmltopdf=WKHTMLTOPDF_PATH)
+else:
+    PDFKIT_CONFIG = None
+
 @app.route('/')
 def home():
     return jsonify({
@@ -81,7 +89,10 @@ def word_to_pdf():
         with open(html_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
             
-        pdfkit.from_file(html_path, output_path)
+        if PDFKIT_CONFIG:
+            pdfkit.from_file(html_path, output_path, configuration=PDFKIT_CONFIG)
+        else:
+            pdfkit.from_file(html_path, output_path)
         
         # Clean up HTML file
         os.remove(html_path)
@@ -127,7 +138,10 @@ def excel_to_pdf():
             f.write(styled_html)
 
         pdf_path = os.path.join(CONVERTED_FOLDER, file.filename.replace('.xlsx', '.pdf'))
-        pdfkit.from_file(html_path, pdf_path)
+        if PDFKIT_CONFIG:
+            pdfkit.from_file(html_path, pdf_path, configuration=PDFKIT_CONFIG)
+        else:
+            pdfkit.from_file(html_path, pdf_path)
         
         # Clean up HTML file
         os.remove(html_path)
@@ -209,8 +223,17 @@ def health_check():
         }
     })
 
+# Health check endpoint for Render
+@app.route('/healthz')
+def healthz():
+    return "OK", 200
+
 if __name__ == '__main__':
+    # Use environment variables for host/port/debug for Render compatibility
+    host = os.environ.get('FLASK_RUN_HOST', '0.0.0.0')
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_DEBUG', '0') == '1'
     print("Starting Document Converter API...")
     print(f"Upload folder: {os.path.abspath(UPLOAD_FOLDER)}")
     print(f"Converted folder: {os.path.abspath(CONVERTED_FOLDER)}")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=debug, host=host, port=port)
