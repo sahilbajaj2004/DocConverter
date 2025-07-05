@@ -226,157 +226,157 @@ export default function DocumentConverter() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Document Converter
-          </h1>
-          <p className="text-lg text-gray-600">
-            Convert your documents between different formats easily
-          </p>
+      <div className="max-w-5xl mx-auto min-h-[100vh]">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">
+        Document Converter
+        </h1>
+        <p className="text-lg text-gray-600">
+        Convert your documents between different formats easily
+        </p>
+      </div>
+
+      {/* Backend Status Alert */}
+      <Alert
+        className={`mb-8 ${
+        backendStatus === "online"
+          ? "border-green-200 bg-green-50"
+          : "border-red-200 bg-red-50"
+        }`}
+      >
+        {backendStatus === "online" ? (
+        <CheckCircle className="h-4 w-4 text-green-600" />
+        ) : (
+        <AlertCircle className="h-4 w-4 text-red-600" />
+        )}
+        <AlertDescription
+        className={
+          backendStatus === "online" ? "text-green-800" : "text-red-800"
+        }
+        >
+        {backendStatus === "checking" && "Checking backend connection..."}
+        {backendStatus === "online" &&
+          "Backend is running and ready for conversions!"}
+        {backendStatus === "offline" &&
+          "Backend is offline. Please start your Flask server on port 5000."}
+        </AlertDescription>
+      </Alert>
+
+      <Card className="mb-10">
+        <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Upload className="h-5 w-5" />
+          Upload & Convert
+        </CardTitle>
+        <CardDescription>
+          Select your file and choose the conversion type to get started.
+          Maximum file size: 50MB
+        </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="conversion-type">Conversion Type</Label>
+          <Select value={conversionType} onValueChange={setConversionType}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select conversion type" />
+          </SelectTrigger>
+          <SelectContent>
+            {CONVERSION_TYPES.map((type) => {
+            const Icon = type.icon;
+            return (
+              <SelectItem key={type.value} value={type.value}>
+              <div className="flex items-center gap-2">
+                <Icon className="h-4 w-4" />
+                {type.label}
+              </div>
+              </SelectItem>
+            );
+            })}
+          </SelectContent>
+          </Select>
         </div>
 
-        {/* Backend Status Alert */}
-        <Alert
-          className={`mb-6 ${
-            backendStatus === "online"
-              ? "border-green-200 bg-green-50"
-              : "border-red-200 bg-red-50"
-          }`}
-        >
-          {backendStatus === "online" ? (
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          ) : (
-            <AlertCircle className="h-4 w-4 text-red-600" />
+        <div className="space-y-2">
+          <Label htmlFor="file-upload">Select File</Label>
+          <Input
+          id="file-upload"
+          type="file"
+          accept={selectedConversion?.accept || "*"}
+          onChange={handleFileChange}
+          className="cursor-pointer"
+          />
+          {selectedFile && (
+          <p className="text-sm text-gray-600">
+            Selected: {selectedFile.name} (
+            {(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+          </p>
           )}
-          <AlertDescription
-            className={
-              backendStatus === "online" ? "text-green-800" : "text-red-800"
-            }
-          >
-            {backendStatus === "checking" && "Checking backend connection..."}
-            {backendStatus === "online" &&
-              "Backend is running and ready for conversions!"}
-            {backendStatus === "offline" &&
-              "Backend is offline. Please start your Flask server on port 5000."}
-          </AlertDescription>
-        </Alert>
+        </div>
 
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Upload className="h-5 w-5" />
-              Upload & Convert
-            </CardTitle>
-            <CardDescription>
-              Select your file and choose the conversion type to get started.
-              Maximum file size: 50MB
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="conversion-type">Conversion Type</Label>
-              <Select value={conversionType} onValueChange={setConversionType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select conversion type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CONVERSION_TYPES.map((type) => {
-                    const Icon = type.icon;
-                    return (
-                      <SelectItem key={type.value} value={type.value}>
-                        <div className="flex items-center gap-2">
-                          <Icon className="h-4 w-4" />
-                          {type.label}
-                        </div>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
+        <Button
+          onClick={handleConvert}
+          disabled={
+          !selectedFile ||
+          !conversionType ||
+          isConverting ||
+          backendStatus !== "online"
+          }
+          className="w-full"
+          size="lg"
+        >
+          {isConverting ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Converting...
+          </>
+          ) : (
+          <>
+            <Upload className="mr-2 h-4 w-4" />
+            Convert File
+          </>
+          )}
+        </Button>
+        </CardContent>
+      </Card>
 
-            <div className="space-y-2">
-              <Label htmlFor="file-upload">Select File</Label>
-              <Input
-                id="file-upload"
-                type="file"
-                accept={selectedConversion?.accept || "*"}
-                onChange={handleFileChange}
-                className="cursor-pointer"
-              />
-              {selectedFile && (
-                <p className="text-sm text-gray-600">
-                  Selected: {selectedFile.name} (
-                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                </p>
-              )}
-            </div>
-
-            <Button
-              onClick={handleConvert}
-              disabled={
-                !selectedFile ||
-                !conversionType ||
-                isConverting ||
-                backendStatus !== "online"
-              }
-              className="w-full"
-              size="lg"
+      {convertedImages.length > 0 && (
+        <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+          <ImageIcon className="h-5 w-5" />
+          Converted Images
+          </CardTitle>
+          <CardDescription>
+          Your PDF has been converted to {convertedImages.length} images.
+          Click to download each image.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {convertedImages.map((imagePath, index) => (
+            <div
+            key={index}
+            className="border rounded-lg p-4 text-center"
             >
-              {isConverting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Converting...
-                </>
-              ) : (
-                <>
-                  <Upload className="mr-2 h-4 w-4" />
-                  Convert File
-                </>
-              )}
+            <ImageIcon className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+            <p className="text-sm font-medium mb-2">Page {index + 1}</p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => downloadImage(imagePath, index)}
+              className="w-full"
+            >
+              <Download className="h-4 w-4 mr-1" />
+              Download
             </Button>
-          </CardContent>
+            </div>
+          ))}
+          </div>
+        </CardContent>
         </Card>
+      )}
 
-        {convertedImages.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ImageIcon className="h-5 w-5" />
-                Converted Images
-              </CardTitle>
-              <CardDescription>
-                Your PDF has been converted to {convertedImages.length} images.
-                Click to download each image.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {convertedImages.map((imagePath, index) => (
-                  <div
-                    key={index}
-                    className="border rounded-lg p-4 text-center"
-                  >
-                    <ImageIcon className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm font-medium mb-2">Page {index + 1}</p>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => downloadImage(imagePath, index)}
-                      className="w-full"
-                    >
-                      <Download className="h-4 w-4 mr-1" />
-                      Download
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {CONVERSION_TYPES.map((type) => {
             const Icon = type.icon;
             return (
@@ -394,7 +394,7 @@ export default function DocumentConverter() {
               </Card>
             );
           })}
-        </div>
+        </div> */}
       </div>
     </div>
   );
