@@ -1,0 +1,10 @@
+Flask
+flask-cors
+pdf2docx
+python-docx
+PyPDF2
+Pillow
+pdfkit
+pandas
+openpyxl
+pdf2image
